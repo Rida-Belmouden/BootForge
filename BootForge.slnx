@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/BootForge.App/BootForge.App.csproj" />
+    <Project Path="src/BootForge.Core/BootForge.Core.csproj" />
+    <Project Path="src/BootForge.DeviceManagement/BootForge.DeviceManagement.csproj" />
+    <Project Path="src/BootForge.Infrastructure/BootForge.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/BootForge.Core.Tests/BootForge.Core.Tests.csproj" />
+  </Folder>
+</Solution>
