@@ -35,12 +35,16 @@ public sealed class WriteOperationServiceTests
             TrackingMemoryStream destination = new();
             StubRawDiskStreamFactory streamFactory =
                 new(destination);
+            StubDiskPropertyUpdater updater = new(
+                () => Assert.True(volumeLock.IsDisposed));
 
             WriteOperationService service = new(
                 lockService,
                 planService,
                 streamFactory,
-                new ImageWriter(bufferSize: 512));
+                new ImageWriter(bufferSize: 512),
+                new ImageVerifier(bufferSize: 512),
+                updater);
 
             await service.WriteAsync(plan);
 
@@ -48,6 +52,7 @@ public sealed class WriteOperationServiceTests
             Assert.True(destination.IsDisposed);
             Assert.True(volumeLock.IsDisposed);
             Assert.Equal(1, planService.CallCount);
+            Assert.True(updater.WasUpdated);
         }
         finally
         {
@@ -77,7 +82,9 @@ public sealed class WriteOperationServiceTests
                 new StubVolumeLockService(volumeLock),
                 planService,
                 streamFactory,
-                new ImageWriter());
+                new ImageWriter(),
+                new ImageVerifier(),
+                new StubDiskPropertyUpdater());
 
             await Assert.ThrowsAsync<InvalidOperationException>(
                 () => service.WriteAsync(plan));
@@ -202,6 +209,19 @@ public sealed class WriteOperationServiceTests
         {
             IsDisposed = true;
             base.Dispose(disposing);
+        }
+    }
+
+    private sealed class StubDiskPropertyUpdater(
+        Action? update = null)
+        : IDiskPropertyUpdater
+    {
+        public bool WasUpdated { get; private set; }
+
+        public void Update(PhysicalDisk disk)
+        {
+            WasUpdated = true;
+            update?.Invoke();
         }
     }
 }

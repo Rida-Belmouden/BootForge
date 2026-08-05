@@ -16,6 +16,7 @@ internal static partial class Kernel32
     internal const uint IoctlStorageQueryProperty = 0x002D1400;
     internal const uint IoctlDiskGetLengthInfo = 0x0007405C;
     internal const uint IoctlDiskGetDriveGeometryEx = 0x000700A0;
+    internal const uint IoctlDiskUpdateProperties = 0x00070140;
     internal const uint IoctlStorageGetDeviceNumber = 0x002D1080;
     internal const uint IoctlVolumeGetVolumeDiskExtents =
         0x00560000;

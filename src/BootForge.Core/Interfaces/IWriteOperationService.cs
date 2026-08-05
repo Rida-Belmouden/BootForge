@@ -6,6 +6,6 @@ public interface IWriteOperationService
 {
     Task WriteAsync(
         WritePlan plan,
-        IProgress<ImageWriteProgress>? progress = null,
+        IProgress<WriteOperationProgress>? progress = null,
         CancellationToken cancellationToken = default);
 }

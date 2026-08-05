@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using BootForge.Core.Enums;
 using BootForge.Core.Interfaces;
 using BootForge.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -163,7 +164,7 @@ public sealed partial class MainViewModel : ObservableObject
 
             _writeStopwatch.Restart();
 
-            Progress<ImageWriteProgress> progress =
+            Progress<WriteOperationProgress> progress =
                 new(UpdateWriteProgress);
 
             await _writeOperationService.WriteAsync(
@@ -258,9 +259,19 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     private void UpdateWriteProgress(
-        ImageWriteProgress progress)
+        WriteOperationProgress update)
     {
+        ImageWriteProgress progress = update.Progress;
         WriteProgress = progress.Percentage ?? 0;
+
+        StatusMessage = update.Phase switch
+        {
+            WriteOperationPhase.Writing =>
+                "Writing image to the target disk.",
+            WriteOperationPhase.Verifying =>
+                "Verifying written data byte by byte.",
+            _ => StatusMessage
+        };
 
         string written = FormatBytes(progress.BytesWritten);
         string total = progress.TotalBytes.HasValue

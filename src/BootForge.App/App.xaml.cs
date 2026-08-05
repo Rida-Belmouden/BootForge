@@ -46,12 +46,19 @@ public partial class App : Application
 
         IImageWriter imageWriter = new ImageWriter();
 
+        IImageVerifier imageVerifier = new ImageVerifier();
+
+        IDiskPropertyUpdater diskPropertyUpdater =
+            new DiskPropertyUpdater();
+
         IWriteOperationService writeOperationService =
             new WriteOperationService(
                 volumeLockService,
                 writePlanService,
                 rawDiskStreamFactory,
-                imageWriter);
+                imageWriter,
+                imageVerifier,
+                diskPropertyUpdater);
 
         MainViewModel viewModel =
             new(
