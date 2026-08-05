@@ -1,4 +1,5 @@
 ﻿using System.Collections.ObjectModel;
+using System.Diagnostics;
 using BootForge.Core.Interfaces;
 using BootForge.Core.Models;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -14,13 +15,19 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IWritePlanService _writePlanService;
     private readonly IWriteConfirmationService
         _writeConfirmationService;
+    private readonly IWriteOperationService
+        _writeOperationService;
+
+    private CancellationTokenSource? _writeCancellation;
+    private readonly Stopwatch _writeStopwatch = new();
 
     public MainViewModel(
         IPhysicalDiskService physicalDiskService,
         IDiskImageService diskImageService,
         IImageFilePicker imageFilePicker,
         IWritePlanService writePlanService,
-        IWriteConfirmationService writeConfirmationService)
+        IWriteConfirmationService writeConfirmationService,
+        IWriteOperationService writeOperationService)
     {
         _physicalDiskService = physicalDiskService;
         _diskImageService = diskImageService;
@@ -28,6 +35,7 @@ public sealed partial class MainViewModel : ObservableObject
         _writePlanService = writePlanService;
         _writeConfirmationService =
             writeConfirmationService;
+        _writeOperationService = writeOperationService;
 
         RefreshDisks();
     }
@@ -43,15 +51,32 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string statusMessage = "Ready";
 
+    [ObservableProperty]
+    private bool isWriting;
+
+    [ObservableProperty]
+    private double writeProgress;
+
+    [ObservableProperty]
+    private string writeProgressText = string.Empty;
+
     public bool CanStart =>
+        !IsWriting &&
         SelectedDisk?.IsSelectable == true &&
         SelectedImage is not null &&
         SelectedImage.FitsOn(SelectedDisk);
+
+    public bool CanModifySelection => !IsWriting;
 
     public string StartHint
     {
         get
         {
+            if (IsWriting)
+            {
+                return "Writing in progress. Do not remove the target disk.";
+            }
+
             if (SelectedImage is null)
             {
                 return "Select an ISO or IMG image.";
@@ -99,8 +124,15 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(SelectedImageDetails));
     }
 
+    partial void OnIsWritingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanStart));
+        OnPropertyChanged(nameof(CanModifySelection));
+        OnPropertyChanged(nameof(StartHint));
+    }
+
     [RelayCommand]
-    private void Start()
+    private async Task StartAsync()
     {
         if (!CanStart ||
             SelectedImage is null ||
@@ -121,14 +153,51 @@ public sealed partial class MainViewModel : ObservableObject
                 return;
             }
 
+            using CancellationTokenSource cancellation = new();
+            _writeCancellation = cancellation;
+            IsWriting = true;
+            WriteProgress = 0;
+            WriteProgressText = "Preparing target disk…";
             StatusMessage =
-                "Safety checks passed. Raw disk writing remains disabled until volume locking is available.";
+                "Locking volumes and preparing raw disk access.";
+
+            _writeStopwatch.Restart();
+
+            Progress<ImageWriteProgress> progress =
+                new(UpdateWriteProgress);
+
+            await _writeOperationService.WriteAsync(
+                plan,
+                progress,
+                cancellation.Token);
+
+            _writeStopwatch.Stop();
+            WriteProgress = 100;
+            StatusMessage =
+                "Image written successfully. The target can now be removed safely.";
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage =
+                "Write cancelled. The target disk may be incomplete and should not be used.";
         }
         catch (Exception exception)
         {
             StatusMessage =
                 $"Unable to start: {exception.Message}";
         }
+        finally
+        {
+            _writeStopwatch.Stop();
+            _writeCancellation = null;
+            IsWriting = false;
+        }
+    }
+
+    [RelayCommand]
+    private void CancelWrite()
+    {
+        _writeCancellation?.Cancel();
     }
 
     [RelayCommand]
@@ -186,5 +255,46 @@ public sealed partial class MainViewModel : ObservableObject
             StatusMessage =
                 $"Physical disk detection failed: {exception.Message}";
         }
+    }
+
+    private void UpdateWriteProgress(
+        ImageWriteProgress progress)
+    {
+        WriteProgress = progress.Percentage ?? 0;
+
+        string written = FormatBytes(progress.BytesWritten);
+        string total = progress.TotalBytes.HasValue
+            ? FormatBytes(progress.TotalBytes.Value)
+            : "unknown";
+
+        double elapsedSeconds =
+            _writeStopwatch.Elapsed.TotalSeconds;
+
+        double bytesPerSecond = elapsedSeconds > 0
+            ? progress.BytesWritten / elapsedSeconds
+            : 0;
+
+        string speed = bytesPerSecond > 0
+            ? $"{FormatBytes((long)bytesPerSecond)}/s"
+            : "calculating speed";
+
+        WriteProgressText =
+            $"{WriteProgress:0.0}% — {written} of {total} — {speed}";
+    }
+
+    private static string FormatBytes(long bytes)
+    {
+        string[] units = ["B", "KB", "MB", "GB", "TB"];
+        double value = bytes;
+        int unitIndex = 0;
+
+        while (value >= 1024 &&
+               unitIndex < units.Length - 1)
+        {
+            value /= 1024;
+            unitIndex++;
+        }
+
+        return $"{value:0.##} {units[unitIndex]}";
     }
 }

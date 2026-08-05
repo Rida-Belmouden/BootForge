@@ -38,13 +38,29 @@ public partial class App : Application
         IWriteConfirmationService writeConfirmationService =
             new WriteConfirmationService();
 
+        IVolumeLockService volumeLockService =
+            new VolumeLockService();
+
+        IRawDiskStreamFactory rawDiskStreamFactory =
+            new RawDiskStreamFactory();
+
+        IImageWriter imageWriter = new ImageWriter();
+
+        IWriteOperationService writeOperationService =
+            new WriteOperationService(
+                volumeLockService,
+                writePlanService,
+                rawDiskStreamFactory,
+                imageWriter);
+
         MainViewModel viewModel =
             new(
                 physicalDiskService,
                 diskImageService,
                 imageFilePicker,
                 writePlanService,
-                writeConfirmationService);
+                writeConfirmationService,
+                writeOperationService);
 
         MainWindow mainWindow = new()
         {

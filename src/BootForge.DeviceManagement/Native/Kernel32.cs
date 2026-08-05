@@ -9,6 +9,8 @@ internal static partial class Kernel32
     internal const uint FileShareWrite = 0x00000002;
     internal const uint GenericRead = 0x80000000;
     internal const uint GenericWrite = 0x40000000;
+    internal const uint FileFlagWriteThrough = 0x80000000;
+    internal const uint FileFlagOverlapped = 0x40000000;
     internal const uint OpenExisting = 3;
 
     internal const uint IoctlStorageQueryProperty = 0x002D1400;

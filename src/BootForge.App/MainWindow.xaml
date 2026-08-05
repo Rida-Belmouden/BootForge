@@ -9,6 +9,11 @@
         Background="#F7F8FA"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <BooleanToVisibilityConverter
+            x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -43,6 +48,7 @@
             <ComboBox Grid.Column="0"
                       Height="38"
                       Padding="10,4"
+                      IsEnabled="{Binding CanModifySelection}"
                       ItemsSource="{Binding Disks}"
                       SelectedItem="{Binding SelectedDisk}"
                       DisplayMemberPath="DisplayName" />
@@ -52,6 +58,7 @@
                     Height="38"
                     Padding="16,4"
                     Content="Refresh"
+                    IsEnabled="{Binding CanModifySelection}"
                     Command="{Binding RefreshDisksCommand}" />
         </Grid>
 
@@ -87,6 +94,7 @@
                         Padding="16,4"
                         VerticalAlignment="Center"
                         Content="Select image"
+                        IsEnabled="{Binding CanModifySelection}"
                         Command="{Binding SelectImageCommand}" />
             </Grid>
         </Border>
@@ -178,14 +186,39 @@
                 <TextBlock Margin="0,3,0,0"
                            Text="{Binding StartHint}"
                            FontWeight="SemiBold" />
+
+                <ProgressBar Margin="0,8,16,0"
+                             Height="8"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="{Binding WriteProgress}"
+                             Visibility="{Binding IsWriting,
+                                Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+                <TextBlock Margin="0,4,16,0"
+                           Text="{Binding WriteProgressText}"
+                           Opacity="0.7"
+                           Visibility="{Binding IsWriting,
+                              Converter={StaticResource BooleanToVisibilityConverter}}" />
             </StackPanel>
 
-            <Button Grid.Column="1"
-                    MinWidth="100"
-                    Height="38"
-                    Content="Start"
-                    Command="{Binding StartCommand}"
-                    IsEnabled="{Binding CanStart}" />
+            <StackPanel Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Bottom">
+                <Button MinWidth="100"
+                        Height="38"
+                        Content="Start"
+                        Command="{Binding StartCommand}"
+                        IsEnabled="{Binding CanStart}" />
+
+                <Button Margin="12,0,0,0"
+                        MinWidth="100"
+                        Height="38"
+                        Content="Cancel"
+                        Command="{Binding CancelWriteCommand}"
+                        Visibility="{Binding IsWriting,
+                           Converter={StaticResource BooleanToVisibilityConverter}}" />
+            </StackPanel>
         </Grid>
     </Grid>
 </Window>
