@@ -40,8 +40,10 @@ src/
 tests/
   BootForge.Core.Tests/
 
-docs/```
+docs/
 
+
+```
 ## Safety notice
 
 BootForge performs low-level disk operations. Development versions must only be tested with disposable USB drives containing no important data.
