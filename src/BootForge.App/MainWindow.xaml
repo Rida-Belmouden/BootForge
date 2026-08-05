@@ -3,15 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="BootForge"
         Width="720"
-        Height="520"
+        Height="700"
         MinWidth="620"
-        MinHeight="450"
+        MinHeight="620"
         WindowStartupLocation="CenterScreen">
 
     <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="24" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="16" />
             <RowDefinition Height="*" />
@@ -53,6 +55,46 @@
         </Grid>
 
         <Border Grid.Row="4"
+                Padding="16"
+                BorderThickness="1"
+                CornerRadius="8">
+
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel>
+                    <TextBlock Text="Boot selection"
+                               FontWeight="SemiBold" />
+
+                    <TextBlock Margin="0,4,0,0"
+                               Text="{Binding SelectedImage.FileName,
+                                              TargetNullValue=No ISO or IMG image selected}" />
+
+                    <TextBlock Margin="0,3,0,0"
+                               Opacity="0.65">
+                        <Run Text="{Binding SelectedImage.Format,
+                                            TargetNullValue=—}" />
+                        <Run Text=" · " />
+                        <Run Text="{Binding SelectedImage.FormattedSize,
+                                            TargetNullValue=—}" />
+                    </TextBlock>
+                </StackPanel>
+
+                <Button Grid.Column="2"
+                        MinWidth="110"
+                        Height="38"
+                        Padding="16,4"
+                        VerticalAlignment="Center"
+                        Content="Select image"
+                        Command="{Binding SelectImageCommand}" />
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="6"
                 Padding="20"
                 BorderThickness="1"
                 CornerRadius="8">
@@ -66,56 +108,82 @@
                 <TextBlock Text="Device path"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.DevicePath, TargetNullValue=—}"
+                <TextBlock Text="{Binding SelectedDisk.DevicePath,
+                                          TargetNullValue=—}"
                            Margin="0,4,0,12" />
 
                 <TextBlock Text="Vendor"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.Vendor, TargetNullValue=—}"
+                <TextBlock Text="{Binding SelectedDisk.Vendor,
+                                          TargetNullValue=—}"
                            Margin="0,4,0,12" />
 
                 <TextBlock Text="Product"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.Product, TargetNullValue=—}"
+                <TextBlock Text="{Binding SelectedDisk.Product,
+                                          TargetNullValue=—}"
                            Margin="0,4,0,12" />
 
                 <TextBlock Text="Serial number"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.SerialNumber, TargetNullValue=—}"
+                <TextBlock Text="{Binding SelectedDisk.SerialNumber,
+                                          TargetNullValue=—}"
                            Margin="0,4,0,12" />
 
                 <TextBlock Text="Bus type" 
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.BusType, TargetNullValue=—}"
+                <TextBlock Text="{Binding SelectedDisk.BusType,
+                                          TargetNullValue=—}"
                            Margin="0,4,0,12" />
 
                 <TextBlock Text="Capacity"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.FormattedSize, TargetNullValue=—}"
-                           Margin="0,4,0,0" />
+                <TextBlock Text="{Binding SelectedDisk.FormattedSize,
+                                          TargetNullValue=—}"
+                           Margin="0,4,0,12" />
+
+                <TextBlock Text="Safety status"
+                           FontWeight="SemiBold" />
+
+                <TextBlock Text="{Binding SelectedDisk.Safety.Status,
+                                          TargetNullValue=Unknown}"
+                           Margin="0,4,0,12" />
+
+                <TextBlock Text="Safety assessment"
+                           FontWeight="SemiBold" />
+
+                <TextBlock Text="{Binding SelectedDisk.Safety.Reason,
+                                          TargetNullValue=—}"
+                           Margin="0,4,0,12"
+                           TextWrapping="Wrap" />
             </StackPanel>
         </Border>
 
-        <Grid Grid.Row="6">
+        <Grid Grid.Row="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <TextBlock VerticalAlignment="Center"
-                       Text="{Binding StatusMessage}"
-                       Opacity="0.7" />
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="{Binding StatusMessage}"
+                           Opacity="0.7" />
+
+                <TextBlock Margin="0,3,0,0"
+                           Text="{Binding StartHint}"
+                           FontWeight="SemiBold" />
+            </StackPanel>
 
             <Button Grid.Column="1"
                     MinWidth="100"
                     Height="38"
                     Content="Start"
-                    IsEnabled="False" />
+                    IsEnabled="{Binding CanStart}" />
         </Grid>
     </Grid>
 </Window>

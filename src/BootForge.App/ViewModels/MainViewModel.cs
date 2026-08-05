@@ -9,10 +9,17 @@ namespace BootForge.App.ViewModels;
 public sealed partial class MainViewModel : ObservableObject
 {
     private readonly IPhysicalDiskService _physicalDiskService;
+    private readonly IDiskImageService _diskImageService;
+    private readonly IImageFilePicker _imageFilePicker;
 
-    public MainViewModel(IPhysicalDiskService physicalDiskService)
+    public MainViewModel(
+        IPhysicalDiskService physicalDiskService,
+        IDiskImageService diskImageService,
+        IImageFilePicker imageFilePicker)
     {
         _physicalDiskService = physicalDiskService;
+        _diskImageService = diskImageService;
+        _imageFilePicker = imageFilePicker;
 
         RefreshDisks();
     }
@@ -23,7 +30,79 @@ public sealed partial class MainViewModel : ObservableObject
     private PhysicalDisk? selectedDisk;
 
     [ObservableProperty]
+    private DiskImage? selectedImage;
+
+    [ObservableProperty]
     private string statusMessage = "Ready";
+
+    public bool CanStart =>
+        SelectedDisk?.IsSelectable == true &&
+        SelectedImage is not null &&
+        SelectedImage.FitsOn(SelectedDisk);
+
+    public string StartHint
+    {
+        get
+        {
+            if (SelectedImage is null)
+            {
+                return "Select an ISO or IMG image.";
+            }
+
+            if (SelectedDisk is null)
+            {
+                return "Select a target disk.";
+            }
+
+            if (!SelectedDisk.IsSelectable)
+            {
+                return "The selected disk is blocked for safety.";
+            }
+
+            if (!SelectedImage.FitsOn(SelectedDisk))
+            {
+                return "The image is larger than the selected disk.";
+            }
+
+            return "Ready to write. All data on the target will be erased.";
+        }
+    }
+
+    partial void OnSelectedDiskChanged(PhysicalDisk? value)
+    {
+        OnPropertyChanged(nameof(CanStart));
+        OnPropertyChanged(nameof(StartHint));
+    }
+
+    partial void OnSelectedImageChanged(DiskImage? value)
+    {
+        OnPropertyChanged(nameof(CanStart));
+        OnPropertyChanged(nameof(StartHint));
+    }
+
+    [RelayCommand]
+    private void SelectImage()
+    {
+        string? filePath = _imageFilePicker.PickImageFile();
+
+        if (filePath is null)
+        {
+            return;
+        }
+
+        try
+        {
+            SelectedImage = _diskImageService.Load(filePath);
+            StatusMessage =
+                $"Selected {SelectedImage.FileName}.";
+        }
+        catch (Exception exception)
+        {
+            SelectedImage = null;
+            StatusMessage =
+                $"Image selection failed: {exception.Message}";
+        }
+    }
 
     [RelayCommand]
     private void RefreshDisks()
@@ -41,10 +120,7 @@ public sealed partial class MainViewModel : ObservableObject
             }
 
             SelectedDisk = Disks
-                .FirstOrDefault(disk =>
-                    disk.BusType.Equals(
-                        "Usb",
-                        StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault(disk => disk.IsSelectable)
                 ?? Disks.FirstOrDefault();
 
             StatusMessage = Disks.Count switch

@@ -11,6 +11,7 @@ internal static partial class Kernel32
 
     internal const uint IoctlStorageQueryProperty = 0x002D1400;
     internal const uint IoctlDiskGetLengthInfo = 0x0007405C;
+    internal const uint IoctlStorageGetDeviceNumber = 0x002D1080;
 
     [LibraryImport(
         "kernel32.dll",
