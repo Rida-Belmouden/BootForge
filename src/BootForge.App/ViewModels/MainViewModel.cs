@@ -76,6 +76,15 @@ public sealed partial class MainViewModel : ObservableObject
         }
     }
 
+    public string SelectedImageName =>
+        SelectedImage?.FileName ??
+        "No ISO or IMG image selected";
+
+    public string SelectedImageDetails =>
+        SelectedImage is null
+            ? "Choose a bootable image to continue."
+            : $"{SelectedImage.Format} · {SelectedImage.FormattedSize}";
+
     partial void OnSelectedDiskChanged(PhysicalDisk? value)
     {
         OnPropertyChanged(nameof(CanStart));
@@ -86,6 +95,8 @@ public sealed partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
+        OnPropertyChanged(nameof(SelectedImageName));
+        OnPropertyChanged(nameof(SelectedImageDetails));
     }
 
     [RelayCommand]
