@@ -8,50 +8,56 @@ namespace BootForge.App.ViewModels;
 
 public sealed partial class MainViewModel : ObservableObject
 {
-    private readonly IStorageDeviceService _storageDeviceService;
+    private readonly IPhysicalDiskService _physicalDiskService;
 
-    public MainViewModel(IStorageDeviceService storageDeviceService)
+    public MainViewModel(IPhysicalDiskService physicalDiskService)
     {
-        _storageDeviceService = storageDeviceService;
+        _physicalDiskService = physicalDiskService;
 
-        RefreshDevices();
+        RefreshDisks();
     }
 
-    public ObservableCollection<StorageDevice> Devices { get; } = [];
+    public ObservableCollection<PhysicalDisk> Disks { get; } = [];
 
     [ObservableProperty]
-    private StorageDevice? selectedDevice;
+    private PhysicalDisk? selectedDisk;
 
     [ObservableProperty]
     private string statusMessage = "Ready";
 
     [RelayCommand]
-    private void RefreshDevices()
+    private void RefreshDisks()
     {
-        Devices.Clear();
+        Disks.Clear();
 
         try
         {
-            IReadOnlyList<StorageDevice> detectedDevices =
-                _storageDeviceService.GetRemovableDevices();
+            IReadOnlyList<PhysicalDisk> detectedDisks =
+                _physicalDiskService.GetPhysicalDisks();
 
-            foreach (StorageDevice device in detectedDevices)
+            foreach (PhysicalDisk disk in detectedDisks)
             {
-                Devices.Add(device);
+                Disks.Add(disk);
             }
 
-            StatusMessage = Devices.Count switch
-            {
-                0 => "No removable device detected.",
-                1 => "1 removable device detected.",
-                _ => $"{Devices.Count} removable devices detected."
-            };
+            SelectedDisk = Disks
+                .FirstOrDefault(disk =>
+                    disk.BusType.Equals(
+                        "Usb",
+                        StringComparison.OrdinalIgnoreCase))
+                ?? Disks.FirstOrDefault();
 
-            SelectedDevice = Devices.FirstOrDefault();
+            StatusMessage = Disks.Count switch
+            {
+                0 => "No physical disks detected.",
+                1 => "1 physical disk detected.",
+                _ => $"{Disks.Count} physical disks detected."
+            };
         }
         catch (Exception exception)
         {
-            StatusMessage = $"Device detection failed: {exception.Message}";
+            StatusMessage =
+                $"Physical disk detection failed: {exception.Message}";
         }
     }
 }
