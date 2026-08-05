@@ -30,11 +30,21 @@ public partial class App : Application
         IImageFilePicker imageFilePicker =
             new ImageFilePicker();
 
+        IWritePlanService writePlanService =
+            new WritePlanService(
+                diskImageService,
+                physicalDiskService);
+
+        IWriteConfirmationService writeConfirmationService =
+            new WriteConfirmationService();
+
         MainViewModel viewModel =
             new(
                 physicalDiskService,
                 diskImageService,
-                imageFilePicker);
+                imageFilePicker,
+                writePlanService,
+                writeConfirmationService);
 
         MainWindow mainWindow = new()
         {

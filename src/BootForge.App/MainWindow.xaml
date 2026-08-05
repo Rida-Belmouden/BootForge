@@ -183,6 +183,7 @@
                     MinWidth="100"
                     Height="38"
                     Content="Start"
+                    Command="{Binding StartCommand}"
                     IsEnabled="{Binding CanStart}" />
         </Grid>
     </Grid>

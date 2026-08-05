@@ -11,15 +11,23 @@ public sealed partial class MainViewModel : ObservableObject
     private readonly IPhysicalDiskService _physicalDiskService;
     private readonly IDiskImageService _diskImageService;
     private readonly IImageFilePicker _imageFilePicker;
+    private readonly IWritePlanService _writePlanService;
+    private readonly IWriteConfirmationService
+        _writeConfirmationService;
 
     public MainViewModel(
         IPhysicalDiskService physicalDiskService,
         IDiskImageService diskImageService,
-        IImageFilePicker imageFilePicker)
+        IImageFilePicker imageFilePicker,
+        IWritePlanService writePlanService,
+        IWriteConfirmationService writeConfirmationService)
     {
         _physicalDiskService = physicalDiskService;
         _diskImageService = diskImageService;
         _imageFilePicker = imageFilePicker;
+        _writePlanService = writePlanService;
+        _writeConfirmationService =
+            writeConfirmationService;
 
         RefreshDisks();
     }
@@ -78,6 +86,38 @@ public sealed partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
+    }
+
+    [RelayCommand]
+    private void Start()
+    {
+        if (!CanStart ||
+            SelectedImage is null ||
+            SelectedDisk is null)
+        {
+            return;
+        }
+
+        try
+        {
+            WritePlan plan = _writePlanService.Create(
+                SelectedImage,
+                SelectedDisk);
+
+            if (!_writeConfirmationService.Confirm(plan))
+            {
+                StatusMessage = "Write operation cancelled.";
+                return;
+            }
+
+            StatusMessage =
+                "Safety checks passed. Raw disk writing remains disabled until volume locking is available.";
+        }
+        catch (Exception exception)
+        {
+            StatusMessage =
+                $"Unable to start: {exception.Message}";
+        }
     }
 
     [RelayCommand]
