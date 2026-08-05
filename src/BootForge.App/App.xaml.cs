@@ -11,11 +11,11 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        IStorageDeviceService storageDeviceService =
-            new StorageDeviceService();
+        IPhysicalDiskService physicalDiskService =
+            new PhysicalDiskService();
 
         MainViewModel viewModel =
-            new(storageDeviceService);
+            new(physicalDiskService);
 
         MainWindow mainWindow = new()
         {
