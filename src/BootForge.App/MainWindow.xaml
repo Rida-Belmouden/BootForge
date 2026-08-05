@@ -1,12 +1,151 @@
 ﻿<Window x:Class="BootForge.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:BootForge.App"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="BootForge"
+        Width="720"
+        Height="520"
+        MinWidth="620"
+        MinHeight="450"
+        WindowStartupLocation="CenterScreen">
 
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="24" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="BootForge"
+                       FontSize="30"
+                       FontWeight="SemiBold" />
+
+            <TextBlock Margin="0,6,0,0"
+                       Text="Bootable USB creation utility"
+                       FontSize="14"
+                       Opacity="0.65" />
+        </StackPanel>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox Grid.Column="0"
+                      Height="38"
+                      Padding="10,4"
+                      ItemsSource="{Binding Devices}"
+                      SelectedItem="{Binding SelectedDevice}"
+                      DisplayMemberPath="DisplayName" />
+
+            <Button Grid.Column="2"
+                    MinWidth="100"
+                    Height="38"
+                    Padding="16,4"
+                    Content="Refresh"
+                    Command="{Binding RefreshDevicesCommand}" />
+        </Grid>
+
+        <Border Grid.Row="4"
+                Padding="20"
+                BorderThickness="1"
+                CornerRadius="8">
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0"
+                           Text="Selected device"
+                           FontSize="18"
+                           FontWeight="SemiBold" />
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Drive" FontWeight="SemiBold" />
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SelectedDevice.RootDirectory,
+                                              TargetNullValue=—}" />
+                </Grid>
+
+                <Grid Grid.Row="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Volume label"
+                               FontWeight="SemiBold" />
+
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SelectedDevice.VolumeLabel,
+                                              TargetNullValue=—}" />
+                </Grid>
+
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="File system"
+                               FontWeight="SemiBold" />
+
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SelectedDevice.FileSystem,
+                                              TargetNullValue=—}" />
+                </Grid>
+
+                <Grid Grid.Row="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="Capacity"
+                               FontWeight="SemiBold" />
+
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding SelectedDevice.FormattedTotalSize,
+                                              TargetNullValue=—}" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock VerticalAlignment="Center"
+                       Text="{Binding StatusMessage}"
+                       Opacity="0.7" />
+
+            <Button Grid.Column="1"
+                    MinWidth="100"
+                    Height="38"
+                    Content="Start"
+                    IsEnabled="False" />
+        </Grid>
     </Grid>
 </Window>
