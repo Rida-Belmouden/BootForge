@@ -61,8 +61,12 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string writeProgressText = string.Empty;
 
+    [ObservableProperty]
+    private bool hasCompletedWrite;
+
     public bool CanStart =>
         !IsWriting &&
+        !HasCompletedWrite &&
         SelectedDisk?.IsSelectable == true &&
         SelectedImage is not null &&
         SelectedImage.FitsOn(SelectedDisk);
@@ -76,6 +80,11 @@ public sealed partial class MainViewModel : ObservableObject
             if (IsWriting)
             {
                 return "Writing in progress. Do not remove the target disk.";
+            }
+
+            if (HasCompletedWrite)
+            {
+                return "Verification complete. Use Safely Remove Hardware before unplugging the target.";
             }
 
             if (SelectedImage is null)
@@ -113,12 +122,14 @@ public sealed partial class MainViewModel : ObservableObject
 
     partial void OnSelectedDiskChanged(PhysicalDisk? value)
     {
+        HasCompletedWrite = false;
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
     }
 
     partial void OnSelectedImageChanged(DiskImage? value)
     {
+        HasCompletedWrite = false;
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
         OnPropertyChanged(nameof(SelectedImageName));
@@ -129,6 +140,12 @@ public sealed partial class MainViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(CanModifySelection));
+        OnPropertyChanged(nameof(StartHint));
+    }
+
+    partial void OnHasCompletedWriteChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
     }
 
@@ -174,8 +191,9 @@ public sealed partial class MainViewModel : ObservableObject
 
             _writeStopwatch.Stop();
             WriteProgress = 100;
+            HasCompletedWrite = true;
             StatusMessage =
-                "Image written successfully. The target can now be removed safely.";
+                "Image written and verified successfully.";
         }
         catch (OperationCanceledException)
         {
