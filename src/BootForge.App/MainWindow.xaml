@@ -77,6 +77,11 @@
                 CornerRadius="8">
 
             <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="12" />
@@ -93,73 +98,6 @@
                     <TextBlock Margin="0,3,0,0"
                                Text="{Binding SelectedImageDetails}"
                                Opacity="0.65" />
-
-                    <Border Margin="0,12,0,0"
-                            Padding="12"
-                            Background="#F7F8FA"
-                            CornerRadius="6"
-                            Visibility="{Binding HasSelectedImage,
-                                Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <StackPanel>
-                            <TextBlock Text="Boot compatibility"
-                                       FontWeight="SemiBold"
-                                       Margin="0,0,0,10" />
-
-                            <UniformGrid Columns="3">
-                                <StackPanel Margin="0,0,12,10">
-                                    <TextBlock Text="Firmware"
-                                               FontSize="12"
-                                               Opacity="0.6" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               Text="{Binding SelectedImageFirmware}"
-                                               FontWeight="SemiBold" />
-                                </StackPanel>
-
-                                <StackPanel Margin="0,0,12,10">
-                                    <TextBlock Text="Image layout"
-                                               FontSize="12"
-                                               Opacity="0.6" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               Text="{Binding SelectedImageLayout}"
-                                               FontWeight="SemiBold" />
-                                </StackPanel>
-
-                                <StackPanel Margin="0,0,0,10">
-                                    <TextBlock Text="Partition scheme"
-                                               FontSize="12"
-                                               Opacity="0.6" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               Text="{Binding SelectedImagePartitionScheme}"
-                                               FontWeight="SemiBold" />
-                                </StackPanel>
-
-                                <StackPanel Margin="0,0,12,0">
-                                    <TextBlock Text="File system"
-                                               FontSize="12"
-                                               Opacity="0.6" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               Text="{Binding SelectedImageFileSystem}"
-                                               FontWeight="SemiBold"
-                                               TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <StackPanel>
-                                    <TextBlock Text="Write method"
-                                               FontSize="12"
-                                               Opacity="0.6" />
-                                    <TextBlock Margin="0,3,0,0"
-                                               Text="{Binding SelectedImageWriteMode}"
-                                               FontWeight="SemiBold" />
-                                </StackPanel>
-                            </UniformGrid>
-
-                            <TextBlock Margin="0,10,0,0"
-                                       Text="The image layout and file system will be preserved."
-                                       FontSize="12"
-                                       Opacity="0.6"
-                                       TextWrapping="Wrap" />
-                        </StackPanel>
-                    </Border>
                 </StackPanel>
 
                 <Button Grid.Column="2"
@@ -170,6 +108,85 @@
                         Content="Select image"
                         IsEnabled="{Binding CanModifySelection}"
                         Command="{Binding SelectImageCommand}" />
+
+                <Border Grid.Row="1"
+                        Grid.ColumnSpan="3"
+                        Margin="0,12,0,0"
+                        Padding="12"
+                        Background="#F7F8FA"
+                        CornerRadius="6"
+                        Visibility="{Binding HasSelectedImage,
+                            Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <StackPanel>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="Boot compatibility"
+                                       FontWeight="SemiBold" />
+
+                            <TextBlock Grid.Column="1"
+                                       HorizontalAlignment="Right"
+                                       Text="Raw mode preserves the image layout."
+                                       FontSize="12"
+                                       Opacity="0.6" />
+                        </Grid>
+
+                        <UniformGrid Margin="0,10,0,0"
+                                     Columns="5">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Firmware"
+                                           FontSize="12"
+                                           Opacity="0.6" />
+                                <TextBlock Margin="0,3,0,0"
+                                           Text="{Binding SelectedImageFirmware}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Image layout"
+                                           FontSize="12"
+                                           Opacity="0.6" />
+                                <TextBlock Margin="0,3,0,0"
+                                           Text="{Binding SelectedImageLayout}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="Partition scheme"
+                                           FontSize="12"
+                                           Opacity="0.6" />
+                                <TextBlock Margin="0,3,0,0"
+                                           Text="{Binding SelectedImagePartitionScheme}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="File system"
+                                           FontSize="12"
+                                           Opacity="0.6" />
+                                <TextBlock Margin="0,3,0,0"
+                                           Text="{Binding SelectedImageFileSystem}"
+                                           FontWeight="SemiBold"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+
+                            <StackPanel>
+                                <TextBlock Text="Write method"
+                                           FontSize="12"
+                                           Opacity="0.6" />
+                                <TextBlock Margin="0,3,0,0"
+                                           Text="{Binding SelectedImageWriteMode}"
+                                           FontWeight="SemiBold" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
@@ -180,71 +197,119 @@
                 BorderThickness="1"
                 CornerRadius="8">
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
-              <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="16" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
                 <TextBlock Text="Selected physical disk"
                            FontSize="18"
-                           FontWeight="SemiBold"
-                           Margin="0,0,0,16" />
-
-                <TextBlock Text="Device path"
                            FontWeight="SemiBold" />
 
-                <TextBlock Text="{Binding SelectedDisk.DevicePath,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
+                <UniformGrid Grid.Row="2"
+                             Columns="3">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Device path"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.DevicePath,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
 
-                <TextBlock Text="Vendor"
-                           FontWeight="SemiBold" />
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Vendor"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.Vendor,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
 
-                <TextBlock Text="{Binding SelectedDisk.Vendor,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
+                    <StackPanel>
+                        <TextBlock Text="Product"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.Product,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </UniformGrid>
 
-                <TextBlock Text="Product"
-                           FontWeight="SemiBold" />
+                <UniformGrid Grid.Row="4"
+                             Columns="3">
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Serial number"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.SerialNumber,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
 
-                <TextBlock Text="{Binding SelectedDisk.Product,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Bus type"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.BusType,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
 
-                <TextBlock Text="Serial number"
-                           FontWeight="SemiBold" />
+                    <StackPanel>
+                        <TextBlock Text="Capacity"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.FormattedSize,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
+                </UniformGrid>
 
-                <TextBlock Text="{Binding SelectedDisk.SerialNumber,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="2*" />
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Text="Bus type" 
-                           FontWeight="SemiBold" />
+                    <StackPanel Margin="0,0,20,0">
+                        <TextBlock Text="Safety status"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.Safety.Status,
+                                                  TargetNullValue=Unknown}"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
 
-                <TextBlock Text="{Binding SelectedDisk.BusType,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
-
-                <TextBlock Text="Capacity"
-                           FontWeight="SemiBold" />
-
-                <TextBlock Text="{Binding SelectedDisk.FormattedSize,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12" />
-
-                <TextBlock Text="Safety status"
-                           FontWeight="SemiBold" />
-
-                <TextBlock Text="{Binding SelectedDisk.Safety.Status,
-                                          TargetNullValue=Unknown}"
-                           Margin="0,4,0,12" />
-
-                <TextBlock Text="Safety assessment"
-                           FontWeight="SemiBold" />
-
-                <TextBlock Text="{Binding SelectedDisk.Safety.Reason,
-                                          TargetNullValue=—}"
-                           Margin="0,4,0,12"
-                           TextWrapping="Wrap" />
-              </StackPanel>
-            </ScrollViewer>
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Text="Safety assessment"
+                                   FontSize="12"
+                                   Opacity="0.6" />
+                        <TextBlock Margin="0,3,0,0"
+                                   Text="{Binding SelectedDisk.Safety.Reason,
+                                                  TargetNullValue=—}"
+                                   FontWeight="SemiBold"
+                                   TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Grid>
         </Border>
 
         <Grid Grid.Row="8">
