@@ -1,0 +1,78 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*.*.*
+
+permissions:
+  contents: write
+
+jobs:
+  build-test-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Validate release tag
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF_NAME -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$') {
+              throw "Unsupported release tag: $env:GITHUB_REF_NAME"
+          }
+
+          $version = $env:GITHUB_REF_NAME.Substring(1)
+          "BOOTFORGE_VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Restore
+        run: dotnet restore BootForge.slnx
+
+      - name: Build
+        run: dotnet build BootForge.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/BootForge.Core.Tests/BootForge.Core.Tests.csproj --configuration Release --no-build --no-restore
+
+      - name: Create portable package
+        shell: pwsh
+        run: ./scripts/package.ps1 -Version $env:BOOTFORGE_VERSION
+
+      - name: Publish GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $assets = Get-ChildItem artifacts -File |
+              Where-Object Extension -In '.zip', '.sha256' |
+              ForEach-Object FullName
+
+          if ($assets.Count -ne 2) {
+              throw "Expected one package and one checksum, found $($assets.Count)."
+          }
+
+          $arguments = @(
+              'release', 'create', $env:GITHUB_REF_NAME
+              '--verify-tag'
+              '--generate-notes'
+              '--title', "BootForge $env:GITHUB_REF_NAME"
+          )
+
+          if ($env:GITHUB_REF_NAME.Contains('-')) {
+              $arguments += '--prerelease'
+          }
+
+          $arguments += $assets
+          & gh @arguments
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "GitHub release creation failed with exit code $LASTEXITCODE."
+          }

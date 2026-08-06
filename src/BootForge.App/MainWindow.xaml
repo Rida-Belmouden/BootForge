@@ -32,10 +32,17 @@
                        FontSize="30"
                        FontWeight="SemiBold" />
 
-            <TextBlock Margin="0,6,0,0"
-                       Text="Bootable USB creation utility"
-                       FontSize="14"
-                       Opacity="0.65" />
+            <StackPanel Margin="0,6,0,0"
+                        Orientation="Horizontal">
+                <TextBlock Text="Bootable USB creation utility"
+                           FontSize="14"
+                           Opacity="0.65" />
+
+                <TextBlock Margin="8,0,0,0"
+                           Text="{Binding VersionText}"
+                           FontSize="14"
+                           Opacity="0.5" />
+            </StackPanel>
         </StackPanel>
 
         <Grid Grid.Row="2">

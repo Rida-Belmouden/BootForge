@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
 using BootForge.Core.Enums;
 using BootForge.Core.Interfaces;
 using BootForge.Core.Models;
@@ -10,6 +11,8 @@ namespace BootForge.App.ViewModels;
 
 public sealed partial class MainViewModel : ObservableObject
 {
+    public string VersionText { get; } = GetVersionText();
+
     private readonly IPhysicalDiskService _physicalDiskService;
     private readonly IDiskImageService _diskImageService;
     private readonly IImageFilePicker _imageFilePicker;
@@ -45,6 +48,19 @@ public sealed partial class MainViewModel : ObservableObject
     }
 
     public ObservableCollection<PhysicalDisk> Disks { get; } = [];
+
+    private static string GetVersionText()
+    {
+        string? informationalVersion = typeof(MainViewModel).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+            ?.InformationalVersion;
+
+        string version = informationalVersion?
+            .Split('+', StringSplitOptions.RemoveEmptyEntries)[0]
+            ?? "0.0.0-dev";
+
+        return $"v{version}";
+    }
 
     [ObservableProperty]
     private PhysicalDisk? selectedDisk;
