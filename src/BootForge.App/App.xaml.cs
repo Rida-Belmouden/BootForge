@@ -51,6 +51,9 @@ public partial class App : Application
         IDiskPropertyUpdater diskPropertyUpdater =
             new DiskPropertyUpdater();
 
+        IDeviceEjectService deviceEjectService =
+            new DeviceEjectService();
+
         IWriteOperationService writeOperationService =
             new WriteOperationService(
                 volumeLockService,
@@ -67,7 +70,8 @@ public partial class App : Application
                 imageFilePicker,
                 writePlanService,
                 writeConfirmationService,
-                writeOperationService);
+                writeOperationService,
+                deviceEjectService);
 
         MainWindow mainWindow = new()
         {

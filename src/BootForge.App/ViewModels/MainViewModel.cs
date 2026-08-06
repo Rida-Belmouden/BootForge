@@ -18,6 +18,7 @@ public sealed partial class MainViewModel : ObservableObject
         _writeConfirmationService;
     private readonly IWriteOperationService
         _writeOperationService;
+    private readonly IDeviceEjectService _deviceEjectService;
 
     private CancellationTokenSource? _writeCancellation;
     private readonly Stopwatch _writeStopwatch = new();
@@ -28,7 +29,8 @@ public sealed partial class MainViewModel : ObservableObject
         IImageFilePicker imageFilePicker,
         IWritePlanService writePlanService,
         IWriteConfirmationService writeConfirmationService,
-        IWriteOperationService writeOperationService)
+        IWriteOperationService writeOperationService,
+        IDeviceEjectService deviceEjectService)
     {
         _physicalDiskService = physicalDiskService;
         _diskImageService = diskImageService;
@@ -37,6 +39,7 @@ public sealed partial class MainViewModel : ObservableObject
         _writeConfirmationService =
             writeConfirmationService;
         _writeOperationService = writeOperationService;
+        _deviceEjectService = deviceEjectService;
 
         RefreshDisks();
     }
@@ -64,6 +67,9 @@ public sealed partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool hasCompletedWrite;
 
+    [ObservableProperty]
+    private bool hasEjectedTarget;
+
     public bool CanStart =>
         !IsWriting &&
         !HasCompletedWrite &&
@@ -72,6 +78,11 @@ public sealed partial class MainViewModel : ObservableObject
         SelectedImage.FitsOn(SelectedDisk);
 
     public bool CanModifySelection => !IsWriting;
+
+    public bool CanEject =>
+        HasCompletedWrite &&
+        !HasEjectedTarget &&
+        SelectedDisk is not null;
 
     public string StartHint
     {
@@ -84,7 +95,9 @@ public sealed partial class MainViewModel : ObservableObject
 
             if (HasCompletedWrite)
             {
-                return "Verification complete. Use Safely Remove Hardware before unplugging the target.";
+                return HasEjectedTarget
+                    ? "The target was ejected and can be unplugged safely."
+                    : "Verification complete. Eject the target before unplugging it.";
             }
 
             if (SelectedImage is null)
@@ -123,6 +136,7 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnSelectedDiskChanged(PhysicalDisk? value)
     {
         HasCompletedWrite = false;
+        HasEjectedTarget = false;
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
     }
@@ -130,6 +144,7 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnSelectedImageChanged(DiskImage? value)
     {
         HasCompletedWrite = false;
+        HasEjectedTarget = false;
         OnPropertyChanged(nameof(CanStart));
         OnPropertyChanged(nameof(StartHint));
         OnPropertyChanged(nameof(SelectedImageName));
@@ -146,6 +161,13 @@ public sealed partial class MainViewModel : ObservableObject
     partial void OnHasCompletedWriteChanged(bool value)
     {
         OnPropertyChanged(nameof(CanStart));
+        OnPropertyChanged(nameof(CanEject));
+        OnPropertyChanged(nameof(StartHint));
+    }
+
+    partial void OnHasEjectedTargetChanged(bool value)
+    {
+        OnPropertyChanged(nameof(CanEject));
         OnPropertyChanged(nameof(StartHint));
     }
 
@@ -217,6 +239,28 @@ public sealed partial class MainViewModel : ObservableObject
     private void CancelWrite()
     {
         _writeCancellation?.Cancel();
+    }
+
+    [RelayCommand]
+    private void EjectTarget()
+    {
+        if (!CanEject || SelectedDisk is null)
+        {
+            return;
+        }
+
+        try
+        {
+            _deviceEjectService.Eject(SelectedDisk);
+            HasEjectedTarget = true;
+            StatusMessage =
+                "The target was ejected successfully.";
+        }
+        catch (Exception exception)
+        {
+            StatusMessage =
+                $"Unable to eject target: {exception.Message}";
+        }
     }
 
     [RelayCommand]
