@@ -12,6 +12,19 @@ public sealed class DiskImageService : IDiskImageService
             ".img"
         };
 
+    private readonly IDiskImageAnalyzer _imageAnalyzer;
+
+    public DiskImageService()
+        : this(new DiskImageAnalyzer())
+    {
+    }
+
+    public DiskImageService(
+        IDiskImageAnalyzer imageAnalyzer)
+    {
+        _imageAnalyzer = imageAnalyzer;
+    }
+
     public DiskImage Load(string filePath)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(filePath);
@@ -46,7 +59,10 @@ public sealed class DiskImageService : IDiskImageService
             FileName = file.Name,
             Format = extension.TrimStart('.').ToUpperInvariant(),
             SizeInBytes = file.Length,
-            LastModifiedUtc = file.LastWriteTimeUtc
+            LastModifiedUtc = file.LastWriteTimeUtc,
+            Analysis = _imageAnalyzer.Analyze(
+                file.FullName,
+                extension.TrimStart('.'))
         };
     }
 }

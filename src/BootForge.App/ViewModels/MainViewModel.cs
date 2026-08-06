@@ -75,6 +75,7 @@ public sealed partial class MainViewModel : ObservableObject
         !HasCompletedWrite &&
         SelectedDisk?.IsSelectable == true &&
         SelectedImage is not null &&
+        SelectedImage.Analysis.IsBootable &&
         SelectedImage.FitsOn(SelectedDisk);
 
     public bool CanModifySelection => !IsWriting;
@@ -120,6 +121,11 @@ public sealed partial class MainViewModel : ObservableObject
                 return "The image is larger than the selected disk.";
             }
 
+            if (!SelectedImage.Analysis.IsBootable)
+            {
+                return "The selected file does not contain a recognized boot structure.";
+            }
+
             return "Ready to write. All data on the target will be erased.";
         }
     }
@@ -131,7 +137,7 @@ public sealed partial class MainViewModel : ObservableObject
     public string SelectedImageDetails =>
         SelectedImage is null
             ? "Choose a bootable image to continue."
-            : $"{SelectedImage.Format} · {SelectedImage.FormattedSize}";
+            : $"{SelectedImage.Format} · {SelectedImage.FormattedSize} · {SelectedImage.Analysis.Description}";
 
     partial void OnSelectedDiskChanged(PhysicalDisk? value)
     {

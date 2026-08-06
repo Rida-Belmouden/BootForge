@@ -12,6 +12,9 @@ public sealed record DiskImage
 
     public DateTime LastModifiedUtc { get; init; }
 
+    public DiskImageAnalysis Analysis { get; init; } =
+        DiskImageAnalysis.Unknown;
+
     public string FormattedSize => FormatBytes(SizeInBytes);
 
     public bool FitsOn(PhysicalDisk disk)
