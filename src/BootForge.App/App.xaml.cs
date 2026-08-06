@@ -1,7 +1,9 @@
 ﻿using System.Windows;
+using BootForge.App.Services;
 using BootForge.App.ViewModels;
 using BootForge.Core.Interfaces;
 using BootForge.DeviceManagement.Services;
+using BootForge.Infrastructure.Services;
 
 namespace BootForge.App;
 
@@ -11,11 +13,65 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        ISystemDiskResolver systemDiskResolver =
+            new SystemDiskResolver();
+
+        IDiskSafetyClassifier safetyClassifier =
+            new DiskSafetyClassifier();
+
         IPhysicalDiskService physicalDiskService =
-            new PhysicalDiskService();
+            new PhysicalDiskService(
+                systemDiskResolver,
+                safetyClassifier);
+
+        IDiskImageService diskImageService =
+            new DiskImageService();
+
+        IImageFilePicker imageFilePicker =
+            new ImageFilePicker();
+
+        IWritePlanService writePlanService =
+            new WritePlanService(
+                diskImageService,
+                physicalDiskService);
+
+        IWriteConfirmationService writeConfirmationService =
+            new WriteConfirmationService();
+
+        IVolumeLockService volumeLockService =
+            new VolumeLockService();
+
+        IRawDiskStreamFactory rawDiskStreamFactory =
+            new RawDiskStreamFactory();
+
+        IImageWriter imageWriter = new ImageWriter();
+
+        IImageVerifier imageVerifier = new ImageVerifier();
+
+        IDiskPropertyUpdater diskPropertyUpdater =
+            new DiskPropertyUpdater();
+
+        IDeviceEjectService deviceEjectService =
+            new DeviceEjectService();
+
+        IWriteOperationService writeOperationService =
+            new WriteOperationService(
+                volumeLockService,
+                writePlanService,
+                rawDiskStreamFactory,
+                imageWriter,
+                imageVerifier,
+                diskPropertyUpdater);
 
         MainViewModel viewModel =
-            new(physicalDiskService);
+            new(
+                physicalDiskService,
+                diskImageService,
+                imageFilePicker,
+                writePlanService,
+                writeConfirmationService,
+                writeOperationService,
+                deviceEjectService);
 
         MainWindow mainWindow = new()
         {

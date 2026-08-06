@@ -34,7 +34,11 @@ public sealed record PhysicalDisk
                 name = $"Physical Disk {DiskNumber}";
             }
 
-            return $"{name} — Disk {DiskNumber} — {FormattedSize}";
+            string state = Safety is null || IsSelectable
+                ? string.Empty
+                : " — Blocked";
+
+            return $"{name} — Disk {DiskNumber} — {FormattedSize}{state}";
         }
     }
 
@@ -60,4 +64,7 @@ public sealed record PhysicalDisk
 
         return $"{value:0.##} {units[unitIndex]}";
     }
+    public DiskSafetyAssessment? Safety { get; init; }
+
+    public bool IsSelectable => Safety?.IsSelectable == true;
 }

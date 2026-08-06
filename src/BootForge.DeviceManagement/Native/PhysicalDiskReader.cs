@@ -16,7 +16,7 @@ internal sealed class PhysicalDiskReader
 
         using SafeFileHandle handle = Kernel32.CreateFile(
             devicePath,
-            desiredAccess: 0,
+            Kernel32.GenericRead,
             Kernel32.FileShareRead | Kernel32.FileShareWrite,
             securityAttributes: 0,
             Kernel32.OpenExisting,
@@ -104,6 +104,16 @@ internal sealed class PhysicalDiskReader
 
     private static long ReadDiskLength(SafeFileHandle handle)
     {
+        long length = ReadLengthInformation(handle);
+
+        return length > 0
+            ? length
+            : ReadGeometryDiskSize(handle);
+    }
+
+    private static long ReadLengthInformation(
+        SafeFileHandle handle)
+    {
         int outputSize = Marshal.SizeOf<GetLengthInformation>();
         nint outputBuffer = Marshal.AllocHGlobal(outputSize);
 
@@ -128,6 +138,41 @@ internal sealed class PhysicalDiskReader
                 Marshal.PtrToStructure<GetLengthInformation>(outputBuffer);
 
             return information.Length;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(outputBuffer);
+        }
+    }
+
+    private static long ReadGeometryDiskSize(
+        SafeFileHandle handle)
+    {
+        int outputSize = Marshal.SizeOf<DiskGeometryEx>();
+        nint outputBuffer = Marshal.AllocHGlobal(outputSize);
+
+        try
+        {
+            bool success = Kernel32.DeviceIoControl(
+                handle,
+                Kernel32.IoctlDiskGetDriveGeometryEx,
+                inputBuffer: 0,
+                inputBufferSize: 0,
+                outputBuffer,
+                (uint)outputSize,
+                out _,
+                overlapped: 0);
+
+            if (!success)
+            {
+                return 0;
+            }
+
+            DiskGeometryEx geometry =
+                Marshal.PtrToStructure<DiskGeometryEx>(
+                    outputBuffer);
+
+            return geometry.DiskSize;
         }
         finally
         {

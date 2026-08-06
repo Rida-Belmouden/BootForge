@@ -20,6 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\BootForge.Core\BootForge.Core.csproj" />
+    <ProjectReference Include="..\..\src\BootForge.DeviceManagement\BootForge.DeviceManagement.csproj" />
+    <ProjectReference Include="..\..\src\BootForge.Infrastructure\BootForge.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
