@@ -12,17 +12,23 @@ published as portable Windows releases with a SHA-256 checksum.
 See [the release guide](docs/releasing.md) for the versioning and release
 process.
 
+## Current capabilities
+
+- Detect physical disks and block unsafe targets
+- Analyze ISO and IMG boot structures
+- Detect BIOS, UEFI, hybrid ISO, MBR, and GPT compatibility
+- Write images in raw mode and verify the result byte by byte
+- Safely eject a completed target
+- Build and package the application with GitHub Actions
+
+See [image compatibility](docs/image-compatibility.md) for detection details
+and current limitations.
+
 ## Planned features
 
-- Detect removable USB drives
-- Display detailed device information
-- Write ISO and IMG images
-- Raw disk writing
-- BIOS and UEFI support
-- MBR and GPT partition schemes
+- ISO extraction mode
+- Configurable MBR and GPT partition schemes
 - FAT32 and NTFS formatting
-- Write verification
-- Protection against accidental system disk erasure
 - Multilingual user interface
 
 ## Technology stack
