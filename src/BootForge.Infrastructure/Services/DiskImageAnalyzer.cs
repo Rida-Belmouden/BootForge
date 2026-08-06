@@ -36,6 +36,8 @@ public sealed class DiskImageAnalyzer : IDiskImageAnalyzer
     private static DiskImageAnalysis AnalyzeIso(
         FileStream stream)
     {
+        PartitionLayout partitionLayout =
+            ReadPartitionLayout(stream);
         bool hasPrimaryDescriptor = false;
         uint? bootCatalogSector = null;
         byte[] descriptor = new byte[IsoSectorSize];
@@ -91,55 +93,235 @@ public sealed class DiskImageAnalyzer : IDiskImageAnalyzer
         return CreateAnalysis(
             isRecognized: true,
             support,
-            "ISO 9660");
+            DiskImageKind.Iso9660,
+            partitionLayout.Scheme,
+            isHybridImage:
+                partitionLayout.Scheme !=
+                DiskPartitionScheme.None,
+            partitionLayout.Scheme ==
+                DiskPartitionScheme.None
+                ? "ISO 9660"
+                : "Hybrid ISO 9660");
     }
 
     private static DiskImageAnalysis AnalyzeRawImage(
+        FileStream stream)
+    {
+        PartitionLayout partitionLayout =
+            ReadPartitionLayout(stream);
+
+        BootFirmwareSupport support =
+            BootFirmwareSupport.None;
+
+        if (partitionLayout.HasLegacyMbrPartition)
+        {
+            support |= BootFirmwareSupport.Bios;
+        }
+
+        if (partitionLayout.HasEfiSystemPartition)
+        {
+            support |= BootFirmwareSupport.Uefi;
+        }
+
+        return partitionLayout.Scheme ==
+            DiskPartitionScheme.None
+            ? DiskImageAnalysis.Unknown
+            : CreateAnalysis(
+                isRecognized: true,
+                support,
+                DiskImageKind.RawDisk,
+                partitionLayout.Scheme,
+                isHybridImage: false,
+                partitionLayout.Scheme ==
+                    DiskPartitionScheme.Gpt
+                    ? "GPT disk image"
+                    : "MBR disk image");
+    }
+
+    private static PartitionLayout ReadPartitionLayout(
         FileStream stream)
     {
         byte[] sectors = new byte[1024];
 
         if (!ReadAt(stream, 0, sectors))
         {
-            return DiskImageAnalysis.Unknown;
+            return PartitionLayout.None;
         }
 
         bool hasMbrSignature =
             sectors[510] == 0x55 &&
             sectors[511] == 0xAA;
+        bool hasLegacyMbrPartition = false;
 
-        bool hasMbrPartition = false;
-
-        for (int index = 0; index < 4; index++)
+        if (hasMbrSignature)
         {
-            int partitionOffset = 446 + index * 16;
-            hasMbrPartition |=
-                sectors[partitionOffset + 4] != 0;
+            for (int index = 0; index < 4; index++)
+            {
+                int partitionOffset = 446 + index * 16;
+                byte partitionType =
+                    sectors[partitionOffset + 4];
+
+                hasLegacyMbrPartition |=
+                    partitionType is not (0 or 0xEE);
+            }
         }
 
-        bool hasGpt =
-            sectors.AsSpan(512, 8)
-                .SequenceEqual("EFI PART"u8);
+        bool hasGpt = TryReadGptHeader(
+            sectors,
+            out ulong partitionEntriesLba,
+            out uint partitionEntryCount,
+            out uint partitionEntrySize);
+        bool hasEfiSystemPartition =
+            hasGpt &&
+            ContainsEfiSystemPartition(
+                stream,
+                partitionEntriesLba,
+                partitionEntryCount,
+                partitionEntrySize);
 
-        BootFirmwareSupport support =
-            BootFirmwareSupport.None;
+        DiskPartitionScheme scheme = hasGpt
+            ? DiskPartitionScheme.Gpt
+            : hasLegacyMbrPartition
+                ? DiskPartitionScheme.Mbr
+                : DiskPartitionScheme.None;
 
-        if (hasMbrSignature && hasMbrPartition)
+        return new PartitionLayout(
+            scheme,
+            hasLegacyMbrPartition,
+            hasEfiSystemPartition);
+    }
+
+    private static bool TryReadGptHeader(
+        byte[] sectors,
+        out ulong partitionEntriesLba,
+        out uint partitionEntryCount,
+        out uint partitionEntrySize)
+    {
+        const int headerOffset = 512;
+        ReadOnlySpan<byte> header =
+            sectors.AsSpan(headerOffset, 512);
+
+        partitionEntriesLba =
+            BinaryPrimitives.ReadUInt64LittleEndian(
+                header.Slice(72, 8));
+        partitionEntryCount =
+            BinaryPrimitives.ReadUInt32LittleEndian(
+                header.Slice(80, 4));
+        partitionEntrySize =
+            BinaryPrimitives.ReadUInt32LittleEndian(
+                header.Slice(84, 4));
+
+        uint revision =
+            BinaryPrimitives.ReadUInt32LittleEndian(
+                header.Slice(8, 4));
+        uint headerSize =
+            BinaryPrimitives.ReadUInt32LittleEndian(
+                header.Slice(12, 4));
+        uint storedHeaderCrc =
+            BinaryPrimitives.ReadUInt32LittleEndian(
+                header.Slice(16, 4));
+        ulong currentLba =
+            BinaryPrimitives.ReadUInt64LittleEndian(
+                header.Slice(24, 8));
+
+        bool fieldsAreValid =
+            header[..8].SequenceEqual("EFI PART"u8) &&
+            revision >> 16 == 1 &&
+            headerSize is >= 92 and <= 512 &&
+            currentLba == 1 &&
+            partitionEntriesLba >= 2 &&
+            partitionEntryCount > 0 &&
+            partitionEntrySize is >= 128 and <= 4096 &&
+            partitionEntrySize % 8 == 0;
+
+        if (!fieldsAreValid)
         {
-            support |= BootFirmwareSupport.Bios;
+            return false;
         }
 
-        if (hasGpt)
+        byte[] headerForCrc =
+            header[..checked((int)headerSize)].ToArray();
+        headerForCrc.AsSpan(16, 4).Clear();
+
+        return CalculateCrc32(headerForCrc) ==
+            storedHeaderCrc;
+    }
+
+    private static bool ContainsEfiSystemPartition(
+        FileStream stream,
+        ulong partitionEntriesLba,
+        uint partitionEntryCount,
+        uint partitionEntrySize)
+    {
+        const uint maximumEntriesToInspect = 1024;
+        uint entriesToInspect = Math.Min(
+            partitionEntryCount,
+            maximumEntriesToInspect);
+        byte[] entry = new byte[partitionEntrySize];
+
+        for (uint index = 0;
+             index < entriesToInspect;
+             index++)
         {
-            support |= BootFirmwareSupport.Uefi;
+            long offset;
+
+            try
+            {
+                offset = checked(
+                    (long)partitionEntriesLba * 512 +
+                    (long)index * partitionEntrySize);
+            }
+            catch (OverflowException)
+            {
+                return false;
+            }
+
+            if (!ReadAt(stream, offset, entry))
+            {
+                return false;
+            }
+
+            if (entry.AsSpan(0, 16)
+                .SequenceEqual(
+                    EfiSystemPartitionTypeGuid))
+            {
+                return true;
+            }
         }
 
-        return support == BootFirmwareSupport.None
-            ? DiskImageAnalysis.Unknown
-            : CreateAnalysis(
-                isRecognized: true,
-                support,
-                hasGpt ? "GPT disk image" : "MBR disk image");
+        return false;
+    }
+
+    private static ReadOnlySpan<byte>
+        EfiSystemPartitionTypeGuid =>
+        [
+            0x28, 0x73, 0x2A, 0xC1,
+            0x1F, 0xF8,
+            0xD2, 0x11,
+            0xBA, 0x4B,
+            0x00, 0xA0, 0xC9, 0x3E, 0xC9, 0x3B
+        ];
+
+    private static uint CalculateCrc32(
+        ReadOnlySpan<byte> content)
+    {
+        const uint polynomial = 0xEDB88320;
+        uint crc = uint.MaxValue;
+
+        foreach (byte value in content)
+        {
+            crc ^= value;
+
+            for (int bit = 0; bit < 8; bit++)
+            {
+                uint mask = unchecked(
+                    (uint)-(int)(crc & 1));
+                crc = (crc >> 1) ^
+                    (polynomial & mask);
+            }
+        }
+
+        return ~crc;
     }
 
     private static BootFirmwareSupport ReadBootCatalog(
@@ -262,6 +444,9 @@ public sealed class DiskImageAnalyzer : IDiskImageAnalyzer
     private static DiskImageAnalysis CreateAnalysis(
         bool isRecognized,
         BootFirmwareSupport support,
+        DiskImageKind imageKind,
+        DiskPartitionScheme partitionScheme,
+        bool isHybridImage,
         string imageType)
     {
         string firmware = support switch
@@ -278,8 +463,23 @@ public sealed class DiskImageAnalyzer : IDiskImageAnalyzer
             IsRecognized = isRecognized,
             IsBootable = support != BootFirmwareSupport.None,
             FirmwareSupport = support,
+            ImageKind = imageKind,
+            PartitionScheme = partitionScheme,
+            IsHybridImage = isHybridImage,
             Description = $"{imageType} · {firmware}"
         };
+    }
+
+    private readonly record struct PartitionLayout(
+        DiskPartitionScheme Scheme,
+        bool HasLegacyMbrPartition,
+        bool HasEfiSystemPartition)
+    {
+        public static PartitionLayout None { get; } =
+            new(
+                DiskPartitionScheme.None,
+                HasLegacyMbrPartition: false,
+                HasEfiSystemPartition: false);
     }
 
     private static bool ReadAt(

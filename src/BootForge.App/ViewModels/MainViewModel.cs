@@ -155,6 +155,48 @@ public sealed partial class MainViewModel : ObservableObject
             ? "Choose a bootable image to continue."
             : $"{SelectedImage.Format} · {SelectedImage.FormattedSize} · {SelectedImage.Analysis.Description}";
 
+    public bool HasSelectedImage => SelectedImage is not null;
+
+    public string SelectedImageFirmware =>
+        SelectedImage?.Analysis.FirmwareSupport switch
+        {
+            BootFirmwareSupport.Bios => "BIOS",
+            BootFirmwareSupport.Uefi => "UEFI",
+            BootFirmwareSupport.Bios |
+                BootFirmwareSupport.Uefi => "BIOS + UEFI",
+            _ => "Not bootable"
+        };
+
+    public string SelectedImageLayout =>
+        SelectedImage?.Analysis switch
+        {
+            { IsHybridImage: true } => "Hybrid ISO",
+            { ImageKind: DiskImageKind.Iso9660 } => "ISO 9660",
+            { ImageKind: DiskImageKind.RawDisk } => "Raw disk image",
+            _ => "Unknown"
+        };
+
+    public string SelectedImagePartitionScheme =>
+        SelectedImage?.Analysis.PartitionScheme switch
+        {
+            DiskPartitionScheme.Mbr => "MBR",
+            DiskPartitionScheme.Gpt => "GPT",
+            _ => "Image-defined"
+        };
+
+    public string SelectedImageFileSystem =>
+        SelectedImage?.Analysis.ImageKind switch
+        {
+            DiskImageKind.Iso9660 => "ISO 9660 (preserved)",
+            DiskImageKind.RawDisk => "Preserved from image",
+            _ => "Unknown"
+        };
+
+    public string SelectedImageWriteMode =>
+        SelectedImage is null
+            ? "—"
+            : "Raw image";
+
     partial void OnSelectedDiskChanged(PhysicalDisk? value)
     {
         HasCompletedWrite = false;
@@ -171,6 +213,13 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(StartHint));
         OnPropertyChanged(nameof(SelectedImageName));
         OnPropertyChanged(nameof(SelectedImageDetails));
+        OnPropertyChanged(nameof(HasSelectedImage));
+        OnPropertyChanged(nameof(SelectedImageFirmware));
+        OnPropertyChanged(nameof(SelectedImageLayout));
+        OnPropertyChanged(
+            nameof(SelectedImagePartitionScheme));
+        OnPropertyChanged(nameof(SelectedImageFileSystem));
+        OnPropertyChanged(nameof(SelectedImageWriteMode));
     }
 
     partial void OnIsWritingChanged(bool value)

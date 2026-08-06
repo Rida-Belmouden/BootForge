@@ -93,13 +93,80 @@
                     <TextBlock Margin="0,3,0,0"
                                Text="{Binding SelectedImageDetails}"
                                Opacity="0.65" />
+
+                    <Border Margin="0,12,0,0"
+                            Padding="12"
+                            Background="#F7F8FA"
+                            CornerRadius="6"
+                            Visibility="{Binding HasSelectedImage,
+                                Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="Boot compatibility"
+                                       FontWeight="SemiBold"
+                                       Margin="0,0,0,10" />
+
+                            <UniformGrid Columns="3">
+                                <StackPanel Margin="0,0,12,10">
+                                    <TextBlock Text="Firmware"
+                                               FontSize="12"
+                                               Opacity="0.6" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Text="{Binding SelectedImageFirmware}"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,12,10">
+                                    <TextBlock Text="Image layout"
+                                               FontSize="12"
+                                               Opacity="0.6" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Text="{Binding SelectedImageLayout}"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,0,10">
+                                    <TextBlock Text="Partition scheme"
+                                               FontSize="12"
+                                               Opacity="0.6" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Text="{Binding SelectedImagePartitionScheme}"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="File system"
+                                               FontSize="12"
+                                               Opacity="0.6" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Text="{Binding SelectedImageFileSystem}"
+                                               FontWeight="SemiBold"
+                                               TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel>
+                                    <TextBlock Text="Write method"
+                                               FontSize="12"
+                                               Opacity="0.6" />
+                                    <TextBlock Margin="0,3,0,0"
+                                               Text="{Binding SelectedImageWriteMode}"
+                                               FontWeight="SemiBold" />
+                                </StackPanel>
+                            </UniformGrid>
+
+                            <TextBlock Margin="0,10,0,0"
+                                       Text="The image layout and file system will be preserved."
+                                       FontSize="12"
+                                       Opacity="0.6"
+                                       TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
                 <Button Grid.Column="2"
                         MinWidth="110"
                         Height="38"
                         Padding="16,4"
-                        VerticalAlignment="Center"
+                        VerticalAlignment="Top"
                         Content="Select image"
                         IsEnabled="{Binding CanModifySelection}"
                         Command="{Binding SelectImageCommand}" />
