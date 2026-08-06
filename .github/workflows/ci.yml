@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test-package:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore BootForge.slnx
+
+      - name: Build
+        run: dotnet build BootForge.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test tests/BootForge.Core.Tests/BootForge.Core.Tests.csproj --configuration Release --no-build --no-restore --logger "trx;LogFileName=tests.trx"
+
+      - name: Create portable package
+        shell: pwsh
+        run: ./scripts/package.ps1 -Version "0.1.0-ci.${{ github.run_number }}"
+
+      - name: Upload portable package
+        uses: actions/upload-artifact@v6
+        with:
+          name: BootForge-win-x64-${{ github.sha }}
+          path: |
+            artifacts/*.zip
+            artifacts/*.sha256
+          if-no-files-found: error
+          retention-days: 14
