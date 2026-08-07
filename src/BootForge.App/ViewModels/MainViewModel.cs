@@ -177,11 +177,15 @@ public sealed partial class MainViewModel : ObservableObject
         };
 
     public string SelectedImagePartitionScheme =>
-        SelectedImage?.Analysis.PartitionScheme switch
+        SelectedImage?.Analysis switch
         {
-            DiskPartitionScheme.Mbr => "MBR",
-            DiskPartitionScheme.Gpt => "GPT",
-            _ => "Image-defined"
+            { PartitionScheme: DiskPartitionScheme.Mbr } =>
+                "MBR",
+            { PartitionScheme: DiskPartitionScheme.Gpt } =>
+                "GPT",
+            { ImageKind: DiskImageKind.Iso9660 } =>
+                "Not applicable",
+            _ => "Not detected"
         };
 
     public string SelectedImageFileSystem =>
