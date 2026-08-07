@@ -191,7 +191,7 @@
         </Border>
 
         <Border Grid.Row="6"
-                Padding="20"
+                Padding="16"
                 Background="White"
                 BorderBrush="#D0D5DD"
                 BorderThickness="1"
@@ -200,11 +200,11 @@
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="16" />
+                    <RowDefinition Height="12" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="14" />
+                    <RowDefinition Height="8" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="14" />
+                    <RowDefinition Height="8" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
 
