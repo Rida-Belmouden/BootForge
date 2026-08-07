@@ -1,0 +1,70 @@
+name: Bug report
+description: Report a reproducible BootForge defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Provide enough detail to reproduce the problem. Do not attach disk
+        images or expose confidential paths and device serial numbers.
+
+  - type: input
+    id: version
+    attributes:
+      label: BootForge version
+      placeholder: v0.1.0-alpha.1
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Windows version, architecture, and whether BootForge ran as administrator
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Select ...
+        2. Choose ...
+        3. Start ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: device
+    attributes:
+      label: Image and target details
+      description: Include format, size, detected layout, USB capacity, and bus type
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or diagnostics
+      description: Attach redacted evidence when available
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Confirmation
+      options:
+        - label: I checked that this issue has not already been reported
+          required: true
+        - label: I removed personal paths and full device serial numbers
+          required: true

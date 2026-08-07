@@ -12,6 +12,12 @@ published as portable Windows releases with a SHA-256 checksum.
 See [the release guide](docs/releasing.md) for the versioning and release
 process.
 
+The current prerelease is
+[v0.1.0-alpha.1](https://github.com/Rida-Belmouden/BootForge/releases/tag/v0.1.0-alpha.1).
+Testers can use the
+[Alpha feedback form](https://github.com/Rida-Belmouden/BootForge/issues/new?template=alpha-feedback.yml)
+and follow the [Sprint 3 plan](docs/sprint-3-plan.md).
+
 ## Current capabilities
 
 - Detect physical disks and block unsafe targets

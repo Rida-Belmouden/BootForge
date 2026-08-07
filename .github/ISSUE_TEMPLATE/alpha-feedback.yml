@@ -1,0 +1,90 @@
+name: Alpha feedback
+description: Share a test result for a BootForge prerelease
+title: "[Alpha feedback]: "
+labels:
+  - alpha-feedback
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing BootForge. Do not include confidential files,
+        full device serial numbers, or personal paths.
+
+  - type: dropdown
+    id: version
+    attributes:
+      label: BootForge version
+      options:
+        - v0.1.0-alpha.1
+        - Development build
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      description: For example, Windows 11 24H2 x64
+    validations:
+      required: true
+
+  - type: input
+    id: device
+    attributes:
+      label: USB device
+      description: Vendor, model, capacity, and bus type; omit the serial number
+    validations:
+      required: true
+
+  - type: input
+    id: image
+    attributes:
+      label: Image
+      description: File name, ISO or IMG, size, and detected compatibility
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Test result
+      options:
+        - Successful
+        - Failed
+        - Partially successful
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps performed
+      description: Describe image selection, target selection, writing, verification, and eject
+    validations:
+      required: true
+
+  - type: textarea
+    id: observed
+    attributes:
+      label: Observed behavior
+      description: Include the exact stage and visible message
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Add screenshots or a redacted diagnostic bundle when available
+
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety confirmation
+      options:
+        - label: I used a disposable USB device containing no important data
+          required: true
+        - label: I removed personal paths and full device serial numbers
+          required: true
